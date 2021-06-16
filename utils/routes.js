@@ -16,7 +16,7 @@ async function Search(request, reply) {
     ]);
 
     if (users.length) {
-      user = formatMongoDocument(users[0]);
+      user = await formatMongoDocument(users[0]);
       if (user.lastUpdated - Date.now() > 60 * 60 * 1000) {
         user = await findAndCreateUser();
       }
@@ -27,6 +27,23 @@ async function Search(request, reply) {
     if (user) {
       return reply.code(200).send(user);
     } else {
+      /*
+      const pastUser = await models.UserModel.aggregate([
+        {
+          $project: {
+
+          }
+        },
+        {
+          $match: {
+            nameHistory: { $elemMatch: { name: query.toLowerCase() } },
+          },
+        },
+      ]);
+      */
+      // Check if someone has this name in their name history
+      // Check if that name a changedAt
+      // If the name has another name after it then its good
       return reply.code(400).send({
         error: `There is no MC account with that username!`,
       });
