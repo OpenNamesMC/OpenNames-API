@@ -1,8 +1,6 @@
-const { kStringMaxLength } = require("buffer");
 const mongoose = require("mongoose");
 
 const nameHistoryType = [{ username: String, changedAt: Number }];
-
 const UserSchema = new mongoose.Schema(
   {
     lastUpdated: {
