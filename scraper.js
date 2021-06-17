@@ -14,7 +14,6 @@ mongoose.connect(process.env.MONGO_URI, {
 // Requirements Start
 const fs = require("fs");
 const { createUserProfile } = require("./utils");
-const { UserModel } = require("./utils/mongo");
 let uuids = JSON.parse(fs.readFileSync("./uuids.json", "utf-8"));
 // Requirements End
 

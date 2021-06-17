@@ -97,7 +97,7 @@ async function Search(request, reply) {
         }
         return reply.code(200).send(user);
       } else {
-        return reply.code(204);
+        return reply.code(204).send(`No username found!`);
       }
     } catch (err) {
       console.log(err);
