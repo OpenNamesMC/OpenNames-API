@@ -24,7 +24,7 @@ async function Search(request, reply) {
       ]);
 
       if (users.length) {
-        user = users[0];
+        user = formatUserDocument(users[0]);
         document = users[0];
         if (user.lastUpdated - Date.now() > 60 * 60 * 1000) {
           await UserModel.deleteOne({
