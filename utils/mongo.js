@@ -1,12 +1,7 @@
 const mongoose = require("mongoose");
 
-const nameHistoryType = [{ _id: false, name: String, changedToAt: Number }];
 const UserSchema = new mongoose.Schema(
   {
-    lastUpdated: {
-      type: Number,
-      required: true,
-    },
     name: {
       type: String,
       unique: true,
@@ -18,8 +13,17 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
     name_history: {
-      type: nameHistoryType,
+      type: [{ _id: false, name: String, changedToAt: Number }],
       required: false,
+      default: [],
+    },
+
+    lastUpdated: {
+      type: Number,
+      required: true,
+    },
+    views: {
+      type: [String],
       default: [],
     },
   },

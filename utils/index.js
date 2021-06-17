@@ -3,17 +3,24 @@ axios.defaults.validateStatus = () => true;
 
 const { UserModel } = require("./mongo");
 
+module.exports.formatUserDocument = (document) => {
+  return {
+    name: document.name,
+    uuid: document.uuid,
+    name_history: document.name_history,
+  };
+};
+
 module.exports.createUserProfile = async (query) => {
   const profiles = await this.fetchMojangProfiles([query]);
   if (profiles.length) {
     const profile = profiles[0];
-    await UserModel.create({
+    return await UserModel.create({
       lastUpdated: Date.now(),
       name: profile.name,
       uuid: profile.uuid,
       name_history: profile.name_history,
     });
-    return profile;
   }
 };
 
