@@ -98,12 +98,12 @@ async function Search(request, reply) {
         return reply
           .code(200)
           .send(user)
-          .header("Access-Control-Allow-Origin", "https://OpenNam.es");
+          .header("Access-Control-Allow-Origin", "*");
       } else {
         return reply
           .code(204)
           .send(`No username found!`)
-          .header("Access-Control-Allow-Origin", "https://OpenNam.es");
+          .header("Access-Control-Allow-Origin", "*");
       }
     } catch (err) {
       console.log(err);
@@ -112,7 +112,7 @@ async function Search(request, reply) {
         .send({
           error: `Internal Server Error`,
         })
-        .header("Access-Control-Allow-Origin", "https://OpenNam.es");
+        .header("Access-Control-Allow-Origin", "*");
     }
   } else {
     reply
@@ -120,7 +120,7 @@ async function Search(request, reply) {
       .send({
         error: `Please provide the query parameter!`,
       })
-      .header("Access-Control-Allow-Origin", "https://OpenNam.es");
+      .header("Access-Control-Allow-Origin", "*");
   }
 }
 
