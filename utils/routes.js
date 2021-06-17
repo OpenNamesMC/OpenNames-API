@@ -1,51 +1,84 @@
-const models = require("./mongo");
-const { findAndCreateUser } = require("./mojang");
-const { formatMongoDocument } = require(".");
+const ms = require("ms");
+const { createUserProfile } = require("./index");
+const { UserModel } = require("./mongo");
 
 // Check the UUID to see name history and load unique names into db
 async function Search(request, reply) {
   const query = request.query.query;
   try {
     let user;
-    let users = await models.UserModel.aggregate([
+    let users = await UserModel.aggregate([
       {
         $match: {
-          $or: [{ username: query.toLowerCase() }, { uuid: query }],
+          $or: [{ name: query.toLowerCase() }, { uuid: query }],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          uuid: 1,
+          name_history: 1,
         },
       },
     ]);
 
     if (users.length) {
-      user = await formatMongoDocument(users[0]);
+      user = users[0];
       if (user.lastUpdated - Date.now() > 60 * 60 * 1000) {
-        user = await findAndCreateUser();
+        await user.deleteOne();
+        user = await createUserProfile(query);
       }
     } else {
-      user = await findAndCreateUser(query);
+      user = await createUserProfile(query);
+    }
+
+    if (!user) {
+      const pastUser = await UserModel.aggregate([
+        {
+          $match: {
+            "nameHistory.name": {
+              $regex: query,
+              $options: "i",
+            },
+
+            "nameHistory.changedAt": {
+              $exists: true,
+            },
+          },
+        },
+        {
+          $sort: {
+            "nameHistory.changedAt": -1,
+          },
+        },
+        {
+          $limit: 1,
+        },
+      ]);
+      if (pastUser.length) {
+        const history = pastUser[0].nameHistory;
+        const nameChangeTime =
+          history[
+            history.indexOf(
+              history.find((x) => x.name.toLowerCase() === query.toLowerCase())
+            ) + 1
+          ].changedAt;
+
+        user = {
+          name: query,
+          unixDropTime: nameChangeTime + 37 * 24 * 60 * 60 * 1000,
+          legitDropTime: ms(
+            nameChangeTime + 37 * 24 * 60 * 60 * 1000 - Date.now()
+          ),
+        };
+      }
     }
 
     if (user) {
       return reply.code(200).send(user);
     } else {
-      /*
-      const pastUser = await models.UserModel.aggregate([
-        {
-          $project: {
-
-          }
-        },
-        {
-          $match: {
-            nameHistory: { $elemMatch: { name: query.toLowerCase() } },
-          },
-        },
-      ]);
-      */
-      // Check if someone has this name in their name history
-      // Check if that name a changedAt
-      // If the name has another name after it then its good
       return reply.code(400).send({
-        error: `There is no MC account with that username!`,
+        error: `There is no MC account with that name!`,
       });
     }
   } catch (err) {

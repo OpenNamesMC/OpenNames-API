@@ -1,19 +1,45 @@
-const { fetchNameHistoryFromUuid } = require("./mojang");
+const axios = require("axios").default;
+axios.defaults.validateStatus = () => true;
 
-const formatMongoDocument = async (document) => {
-  let nameHistory = [];
-  const history = await fetchNameHistoryFromUuid(document.uuid);
-  if (history) {
-    for (const info of history) {
-      nameHistory.push({ name: info.name, changedAt: info.changedToAt });
-    }
+const { UserModel } = require("./mongo");
+
+module.exports.createUserProfile = async (query) => {
+  const profiles = await this.fetchMojangProfiles([query]);
+  if (profiles.length) {
+    const profile = profiles[0];
+    await UserModel.create({
+      lastUpdated: Date.now(),
+      name: profile.name,
+      uuid: profile.uuid,
+      name_history: profile.name_history,
+    });
+    return profile;
   }
-  return {
-    lastUpdated: document.lastUpdated,
-    username: document.username,
-    uuid: document.uuid,
-    nameHistory,
-  };
 };
 
-module.exports.formatMongoDocument = formatMongoDocument;
+module.exports.fetchMojangProfiles = async (data) => {
+  if (data.length > 25) data = data.slice(0, 25);
+  data = this.clearDuplicates(data);
+
+  const response = await axios.post(
+    `https://opensourced.danktrain.workers.dev/data`,
+    data,
+    {
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  if (response.status === 200) {
+    return response.data.response.filter((x) => x.name && x.uuid);
+  } else {
+    return [];
+  }
+};
+
+module.exports.clearDuplicates = (data) => {
+  const newData = [];
+  for (let i = 0; i < data.length; i++) {
+    if (!newData.includes(data[i])) newData.push(data[i]);
+  }
+  return newData;
+};

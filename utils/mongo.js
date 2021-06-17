@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const nameHistoryType = [{ username: String, changedAt: Number }];
+const nameHistoryType = [{ _id: false, name: String, changedToAt: Number }];
 const UserSchema = new mongoose.Schema(
   {
     lastUpdated: {
       type: Number,
       required: true,
     },
-    username: {
+    name: {
       type: String,
       unique: true,
       required: true,
@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: true,
     },
-    nameHistory: {
+    name_history: {
       type: nameHistoryType,
       required: false,
       default: [],
@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema(
   },
   { versionKey: false }
 );
-UserSchema.index({ username: 1 });
+UserSchema.index({ name: 1 });
 UserSchema.index({ uuid: 1 });
 
 module.exports.UserSchema = UserSchema;
