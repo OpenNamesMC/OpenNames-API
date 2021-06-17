@@ -57,3 +57,7 @@ module.exports.formatUserDocument = (document) => {
     views: document.views.length,
   };
 };
+
+module.exports.formatTime = (msTime) => {
+  
+}

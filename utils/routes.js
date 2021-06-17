@@ -79,7 +79,7 @@ async function Search(request, reply) {
             user = {
               name: query,
               unixDropTime: dropTime,
-              legitDropTime: ms(timeUntilDrop),
+              stringDropTime: ms(timeUntilDrop),
             };
           }
         }
@@ -95,20 +95,32 @@ async function Search(request, reply) {
             document
           );
         }
-        return reply.code(200).send(user);
+        return reply
+          .code(200)
+          .send(user)
+          .header("Access-Control-Allow-Origin", "https://OpenNam.es");
       } else {
-        return reply.code(204).send(`No username found!`);
+        return reply
+          .code(204)
+          .send(`No username found!`)
+          .header("Access-Control-Allow-Origin", "https://OpenNam.es");
       }
     } catch (err) {
       console.log(err);
-      reply.code(500).send({
-        error: `Internal Server Error`,
-      });
+      reply
+        .code(500)
+        .send({
+          error: `Internal Server Error`,
+        })
+        .header("Access-Control-Allow-Origin", "https://OpenNam.es");
     }
   } else {
-    reply.code(400).send({
-      error: `Please provide the query parameter!`,
-    });
+    reply
+      .code(400)
+      .send({
+        error: `Please provide the query parameter!`,
+      })
+      .header("Access-Control-Allow-Origin", "https://OpenNam.es");
   }
 }
 
