@@ -3,13 +3,9 @@ axios.defaults.validateStatus = () => true;
 
 const { UserModel } = require("./mongo");
 
-module.exports.formatUserDocument = (document) => {
-  return {
-    name: document.name,
-    uuid: document.uuid,
-    name_history: document.name_history,
-  };
-};
+module.exports.registerNameHistory = async(query) => {
+  // I need to make a function that takes all the names from name history and makes them into documents
+}
 
 module.exports.createUserProfile = async (query) => {
   const profiles = await this.fetchMojangProfiles([query]);
@@ -21,6 +17,8 @@ module.exports.createUserProfile = async (query) => {
       uuid: profile.uuid,
       name_history: profile.name_history,
     });
+  } else {
+    return false;
   }
 };
 
@@ -49,4 +47,12 @@ module.exports.clearDuplicates = (data) => {
     if (!newData.includes(data[i])) newData.push(data[i]);
   }
   return newData;
+};
+
+module.exports.formatUserDocument = (document) => {
+  return {
+    name: document.name,
+    uuid: document.uuid,
+    name_history: document.name_history,
+  };
 };

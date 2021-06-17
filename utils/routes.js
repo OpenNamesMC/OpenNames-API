@@ -2,7 +2,6 @@ const ms = require("ms");
 const { createUserProfile, formatUserDocument } = require("./index");
 const { UserModel } = require("./mongo");
 
-// Check the UUID to see name history and load unique names into db
 async function Search(request, reply) {
   const query = request.query.query;
   if (query) {
@@ -28,32 +27,33 @@ async function Search(request, reply) {
         user = users[0];
         document = users[0];
         if (user.lastUpdated - Date.now() > 60 * 60 * 1000) {
-          await document.deleteOne();
+          await UserModel.deleteOne({
+            _id: document._id,
+          });
           document = await createUserProfile(query);
-          user = formatUserDocument(document);
+          if (document) user = formatUserDocument(document);
         }
       } else {
         document = await createUserProfile(query);
-        user = formatUserDocument(document);
+        if (document) user = formatUserDocument(document);
       }
 
       if (!user) {
         const pastUser = await UserModel.aggregate([
           {
             $match: {
-              "nameHistory.name": {
+              "name_history.name": {
                 $regex: query,
                 $options: "i",
               },
-
-              "nameHistory.changedAt": {
+              "name_history.changedToAt": {
                 $exists: true,
               },
             },
           },
           {
             $sort: {
-              "nameHistory.changedAt": -1,
+              "name_history.changedToAt": -1,
             },
           },
           {
@@ -61,7 +61,7 @@ async function Search(request, reply) {
           },
         ]);
         if (pastUser.length) {
-          const history = pastUser[0].nameHistory;
+          const history = pastUser[0].name_history;
           const nameChangeTime =
             history[
               history.indexOf(
@@ -69,29 +69,35 @@ async function Search(request, reply) {
                   (x) => x.name.toLowerCase() === query.toLowerCase()
                 )
               ) + 1
-            ].changedAt;
+            ].changedToAt;
+
+          const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
+          const timeUntilDrop = dropTime - Date.now();
 
           document = pastUser[0];
-          user = {
-            name: query,
-            unixDropTime: nameChangeTime + 37 * 24 * 60 * 60 * 1000,
-            legitDropTime: ms(
-              nameChangeTime + 37 * 24 * 60 * 60 * 1000 - Date.now()
-            ),
-          };
+          if (!(Math.sign(timeUntilDrop) === -1)) {
+            user = {
+              name: query,
+              unixDropTime: dropTime,
+              legitDropTime: ms(timeUntilDrop),
+            };
+          }
         }
       }
 
       if (user) {
         if (!document.views.includes(request.ip)) {
           document.views.push(request.ip);
-          await document.save();
+          await UserModel.updateOne(
+            {
+              _id: document._id,
+            },
+            document
+          );
         }
         return reply.code(200).send(user);
       } else {
-        return reply.code(400).send({
-          error: `There is no MC account with that name!`,
-        });
+        return reply.code(204);
       }
     } catch (err) {
       console.log(err);
