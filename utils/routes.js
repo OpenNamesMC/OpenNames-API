@@ -1,5 +1,5 @@
-const { createUserProfile, formatUserDocument, formatTime } = require("./index");
-const { UserModel } = require("./mongo");
+const { createProfile, formatProfile, formatTime } = require("./index");
+const { ProfileModel } = require("./mongo");
 const config = require("../config");
 
 async function Search(request, reply) {
@@ -7,13 +7,13 @@ async function Search(request, reply) {
   if (query) {
     try {
       let user, document;
-      let users = await UserModel.aggregate([
+      let users = await ProfileModel.aggregate([
         {
           $match: {
             $or: [
               {
                 name: {
-                  $regex: query,
+                  $regex: `${query}$`,
                   $options: "i",
                 },
               },
@@ -24,26 +24,26 @@ async function Search(request, reply) {
       ]);
 
       if (users.length) {
-        user = formatUserDocument(users[0]);
+        user = formatProfile(users[0]);
         document = users[0];
         if (user.lastUpdated - Date.now() > config.profileUpdateInterval) {
-          await UserModel.deleteOne({
+          await ProfileModel.deleteOne({
             _id: document._id,
           });
-          document = await createUserProfile(query);
-          if (document) user = formatUserDocument(document);
+          document = await createProfile(query);
+          if (document) user = formatProfile(document);
         }
       } else {
-        document = await createUserProfile(query);
-        if (document) user = formatUserDocument(document);
+        document = await createProfile(query);
+        if (document) user = formatProfile(document);
       }
 
       if (!user) {
-        const pastUsers = await UserModel.aggregate([
+        const pastUsers = await ProfileModel.aggregate([
           {
             $match: {
               "name_history.name": {
-                $regex: query,
+                $regex: `${query}$`,
                 $options: "i",
               },
               "name_history.changedToAt": {
@@ -77,7 +77,7 @@ async function Search(request, reply) {
               name: query,
               unixDropTime: dropTime,
               stringDropTime: formatTime(timeUntilDrop),
-              owner_history: pastUsers.map((x) => formatUserDocument(x)),
+              owner_history: pastUsers.map((x) => formatProfile(x)),
             };
           }
         }
@@ -86,7 +86,7 @@ async function Search(request, reply) {
       if (user) {
         if (!document.views.includes(request.ip)) {
           document.views.push(request.ip);
-          await UserModel.updateOne(
+          await ProfileModel.updateOne(
             {
               _id: document._id,
             },

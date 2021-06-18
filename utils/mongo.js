@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema(
+const ProfileSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -9,7 +9,6 @@ const UserSchema = new mongoose.Schema(
     uuid: {
       type: String,
       unique: true,
-      required: true,
     },
     name_history: {
       type: [{ _id: false, name: String, changedToAt: Number }],
@@ -28,8 +27,8 @@ const UserSchema = new mongoose.Schema(
   },
   { versionKey: false }
 );
-UserSchema.index({ name: 1 });
-UserSchema.index({ uuid: 1 });
+ProfileSchema.index({ name: 1 });
+ProfileSchema.index({ uuid: 1 });
 
-module.exports.UserSchema = UserSchema;
-module.exports.UserModel = new mongoose.model("User", UserSchema);
+module.exports.ProfileSchema = ProfileSchema;
+module.exports.ProfileModel = new mongoose.model("Profile", ProfileSchema);

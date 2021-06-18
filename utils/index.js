@@ -1,12 +1,12 @@
 const axios = require("axios").default;
 axios.defaults.validateStatus = () => true;
 
-const { UserModel } = require("./mongo");
+const { ProfileModel } = require("./mongo");
 
 module.exports.registerNameArray = async (query) => {
   let profiles = await this.fetchMojangProfiles(query);
   if (profiles.length) {
-    UserModel.insertMany(
+    ProfileModel.insertMany(
       profiles.map((x) => {
         x.lastUpdated = Date.now();
         return x;
@@ -18,11 +18,11 @@ module.exports.registerNameArray = async (query) => {
   }
 };
 
-module.exports.createUserProfile = async (query) => {
+module.exports.createProfile = async (query) => {
   const profiles = await this.fetchMojangProfiles([query]);
   if (profiles.length) {
     const profile = profiles[0];
-    return await UserModel.create({
+    return await ProfileModel.create({
       lastUpdated: Date.now(),
       name: profile.name,
       uuid: profile.uuid,
@@ -60,7 +60,7 @@ module.exports.clearDuplicates = (data) => {
   return newData;
 };
 
-module.exports.formatUserDocument = (document) => {
+module.exports.formatProfile = (document) => {
   return {
     name: document.name,
     uuid: document.uuid,
