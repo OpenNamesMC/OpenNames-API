@@ -1,6 +1,6 @@
-const ms = require("ms");
-const { createUserProfile, formatUserDocument } = require("./index");
+const { createUserProfile, formatUserDocument, formatTime } = require("./index");
 const { UserModel } = require("./mongo");
+const config = require("../config");
 
 async function Search(request, reply) {
   const query = request.query.query;
@@ -26,7 +26,7 @@ async function Search(request, reply) {
       if (users.length) {
         user = formatUserDocument(users[0]);
         document = users[0];
-        if (user.lastUpdated - Date.now() > 60 * 60 * 1000) {
+        if (user.lastUpdated - Date.now() > config.profileUpdateInterval) {
           await UserModel.deleteOne({
             _id: document._id,
           });
@@ -39,7 +39,7 @@ async function Search(request, reply) {
       }
 
       if (!user) {
-        const pastUser = await UserModel.aggregate([
+        const pastUsers = await UserModel.aggregate([
           {
             $match: {
               "name_history.name": {
@@ -56,12 +56,9 @@ async function Search(request, reply) {
               "name_history.changedToAt": -1,
             },
           },
-          {
-            $limit: 1,
-          },
         ]);
-        if (pastUser.length) {
-          const history = pastUser[0].name_history;
+        if (pastUsers.length) {
+          const history = pastUsers[0].name_history;
           const nameChangeTime =
             history[
               history.indexOf(
@@ -74,12 +71,13 @@ async function Search(request, reply) {
           const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
           const timeUntilDrop = dropTime - Date.now();
 
-          document = pastUser[0];
+          document = pastUsers[0];
           if (!(Math.sign(timeUntilDrop) === -1)) {
             user = {
               name: query,
               unixDropTime: dropTime,
-              stringDropTime: ms(timeUntilDrop),
+              stringDropTime: formatTime(timeUntilDrop),
+              owner_history: pastUsers.map((x) => formatUserDocument(x)),
             };
           }
         }

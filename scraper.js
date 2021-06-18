@@ -1,6 +1,7 @@
-// Database Start
+const fs = require("fs");
 const mongoose = require("mongoose");
 const { config } = require("dotenv");
+const { registerNameArray } = require("./utils");
 
 config();
 
@@ -9,33 +10,26 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
-// Database End
 
-// Requirements Start
-const fs = require("fs");
-const { createUserProfile } = require("./utils");
 let uuids = JSON.parse(fs.readFileSync("./uuids.json", "utf-8"));
-// Requirements End
 
-// Register Accounts
-(async () => {
-  for (let i = 0; i < uuids.length; i++) {
-    checkAndRegisterProfile(uuids[i]);
-    uuids = uuids.filter((x) => x !== uuids[i]);
-    if (uuids.length % 10 == 0) {
-      console.log(`${uuids.length} | Accounts left!`);
-      fs.writeFileSync("./uuids.json", JSON.stringify(uuids));
-    }
+async function loop(nameHistory) {
+  let query;
+  if (!nameHistory.length) {
+    query = uuids.splice(0, 25);
+    uuids = uuids.filter((x) => !query.includes(x));
+    fs.writeFileSync("./uuids.json", JSON.stringify(uuids));
+    console.log(`There are ${uuids.length} accounts left to register!`);
   }
-})();
 
-async function checkAndRegisterProfile(query) {
-  const newProfile = await createUserProfile(query);
-  if (newProfile) {
-    console.log(`Registered profile for ${query}`);
-    for (const historyInfo of newProfile.name_history) {
-      checkAndRegisterProfile(historyInfo.name);
+  if (!nameHistory.length && !query.length) {
+    console.log(`Done!`);
+  } else {
+    const registered = await registerNameArray(queryNames);
+    for (const info of registered) {
+      await loop(info.name_history.map((x) => x.name));
     }
   }
 }
-// Register Accounts
+
+loop();

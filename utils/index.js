@@ -3,8 +3,19 @@ axios.defaults.validateStatus = () => true;
 
 const { UserModel } = require("./mongo");
 
-module.exports.registerNameHistory = async (query) => {
-  // I need to make a function that takes all the names from name history and makes them into documents
+module.exports.registerNameArray = async (query) => {
+  let profiles = await this.fetchMojangProfiles(query);
+  if (profiles.length) {
+    UserModel.insertMany(
+      profiles.map((x) => {
+        x.lastUpdated = Date.now();
+        return x;
+      })
+    );
+    return profiles;
+  } else {
+    return false;
+  }
 };
 
 module.exports.createUserProfile = async (query) => {
@@ -58,6 +69,64 @@ module.exports.formatUserDocument = (document) => {
   };
 };
 
-module.exports.formatTime = (msTime) => {
-  
+module.exports.formatTime = (ms) => {
+  let years = 0,
+    months = 0,
+    days = 0,
+    hours = 0,
+    minutes = 0,
+    seconds = 0;
+
+  if (ms >= 31556952000) {
+    years += Math.floor(ms / 31556952000);
+    ms %= 31556952000;
+  }
+
+  if (ms >= 2073600000) {
+    months += Math.floor(ms / 2073600000);
+    ms %= 2073600000;
+  }
+
+  if (ms >= 86400000) {
+    days += Math.floor(ms / 86400000);
+    ms %= 86400000;
+  }
+
+  if (ms >= 3600000) {
+    hours += Math.floor(ms / 3600000);
+    ms %= 3600000;
+  }
+
+  if (ms >= 60000) {
+    minutes += Math.floor(ms / 60000);
+    ms %= 60000;
+  }
+
+  if (ms >= 1000) {
+    seconds += Math.floor(ms / 1000);
+    ms %= 1000;
+  }
+
+  let str = " ";
+
+  if (years) {
+    str += `${years}y `;
+  }
+  if (months) {
+    str += `${months}mo `;
+  }
+  if (days) {
+    str += `${days}d `;
+  }
+  if (hours) {
+    str += `${hours}h `;
+  }
+  if (minutes) {
+    str += `${minutes}m `;
+  }
+  if (seconds) {
+    str += `${seconds}s `;
+  }
+
+  return str.trim();
 }
