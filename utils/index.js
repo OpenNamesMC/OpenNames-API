@@ -1,7 +1,6 @@
 const axios = require("axios").default;
-axios.defaults.validateStatus = () => true;
-
 const { ProfileModel } = require("./mongo");
+axios.defaults.validateStatus = () => true;
 
 module.exports.registerNameArray = async (query) => {
   let profiles = await this.fetchMojangProfiles(query);
@@ -129,4 +128,4 @@ module.exports.formatTime = (ms) => {
   }
 
   return str.trim();
-}
+};

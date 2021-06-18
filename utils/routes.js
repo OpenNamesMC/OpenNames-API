@@ -13,7 +13,7 @@ async function Search(request, reply) {
             $or: [
               {
                 name: {
-                  $regex: `${query}$`,
+                  $regex: `^${query}$`,
                   $options: "i",
                 },
               },
@@ -43,7 +43,7 @@ async function Search(request, reply) {
           {
             $match: {
               "name_history.name": {
-                $regex: `${query}$`,
+                $regex: `^${query}$`,
                 $options: "i",
               },
               "name_history.changedToAt": {
