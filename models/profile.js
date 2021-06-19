@@ -17,7 +17,7 @@ const ProfileSchema = new mongoose.Schema(
 
     uuid: {
       type: String,
-      unique: true,
+      sparse: true,
     },
     name_history: {
       type: [{ _id: false, name: String, changedToAt: Number }],

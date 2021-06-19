@@ -88,6 +88,11 @@ module.exports = async (request, reply) => {
         profile = formatProfile(await createProfile(query));
       }
 
+      const viewAmount = await ViewModel.countDocuments({
+        name: profile.name,
+      });
+      profile.views = viewAmount;
+
       const viewsData = await ViewModel.findOne({
         name: profile.name,
         ip: request.ip,
@@ -98,11 +103,6 @@ module.exports = async (request, reply) => {
           ip: request.ip,
         });
       }
-
-      const viewAmount = await ViewModel.countDocuments({
-        name: profile.name,
-      });
-      profile.views = viewAmount;
 
       return reply
         .code(200)
