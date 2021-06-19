@@ -1,4 +1,9 @@
-const { createProfile, formatProfile, formatTime } = require("../utils");
+const {
+  createProfile,
+  formatProfile,
+  formatTime,
+  isUUID,
+} = require("../utils");
 const { ProfileModel } = require("../models/profile");
 const { ViewModel } = require("../models/view");
 const config = require("../config");
@@ -7,37 +12,36 @@ module.exports = async (request, reply) => {
   const query = request.query.query;
   if (query) {
     try {
-      let user, document;
-      let users = await ProfileModel.aggregate([
-        {
-          $match: {
-            $or: [
-              {
-                lowercaseName: query.toLowerCase(),
-              },
-              { uuid: query },
-            ],
-          },
-        },
-      ]);
-
-      if (users.length) {
-        user = formatProfile(users[0]);
-        document = users[0];
-        if (user.lastUpdated - Date.now() > config.profileUpdateInterval) {
-          await ProfileModel.deleteOne({
-            _id: document._id,
-          });
-          document = await createProfile(query);
-          if (document) user = formatProfile(document);
-        }
+      let profile;
+      if (isUUID(query)) {
+        profile = await ProfileModel.findOne({ uuid: query });
       } else {
-        document = await createProfile(query);
-        if (document) user = formatProfile(document);
+        const profiles = await ProfileModel.aggregate([
+          {
+            $match: {
+              $or: [
+                {
+                  lowercaseName: query.toLowerCase(),
+                },
+                { uuid: query },
+              ],
+            },
+          },
+        ]);
+        if (profiles.length) profile = profiles[0];
       }
 
-      if (!user) {
-        const pastUsers = await ProfileModel.aggregate([
+      if (profile) {
+        if (profile.lastUpdated - Date.now() > config.profileUpdateInterval) {
+          await ProfileModel.deleteOne({
+            _id: profile._id,
+          });
+          profile = formatProfile(await createProfile(query));
+        } else {
+          profile = formatProfile(profile);
+        }
+      } else {
+        const pastProfiles = await ProfileModel.aggregate([
           {
             $match: {
               "name_history.name": {
@@ -55,8 +59,8 @@ module.exports = async (request, reply) => {
             },
           },
         ]);
-        if (pastUsers.length) {
-          const history = pastUsers[0].name_history;
+        if (pastProfiles.length) {
+          const history = pastProfiles[0].name_history;
           const nameChangeTime =
             history[
               history.indexOf(
@@ -69,52 +73,41 @@ module.exports = async (request, reply) => {
           const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
           const timeUntilDrop = dropTime - Date.now();
 
-          document = pastUsers[0];
           if (!(Math.sign(timeUntilDrop) === -1)) {
-            user = {
+            profile = {
               name: query,
               unixDropTime: dropTime,
               stringDropTime: formatTime(timeUntilDrop),
-              owner_history: pastUsers.map((x) => formatProfile(x)),
+              owner_history: pastProfiles.map((x) => formatProfile(x)),
             };
           }
         }
       }
 
-      if (user) {
-        // Views Start
-        const viewsData = await ViewModel.aggregate([
-          {
-            $match: {
-              name: {
-                $regex: `^${query}$`,
-                $options: "i",
-              },
-              ip: request.ip,
-            },
-          },
-        ]);
-        if (!viewsData.length) {
-          await ViewModel.create({
-            name: user.name,
-            ip: request.ip,
-          });
-        }
-
-        const viewAmount = await ViewModel.countDocuments({ name: user.name });
-        user.views = viewAmount;
-        // Views End
-
-        return reply
-          .code(200)
-          .header("Access-Control-Allow-Origin", "*")
-          .send(user);
-      } else {
-        return reply
-          .code(204)
-          .header("Access-Control-Allow-Origin", "*")
-          .send(`No username found!`);
+      if (!profile && !isUUID(query)) {
+        profile = formatProfile(await createProfile(query));
       }
+
+      const viewsData = await ViewModel.findOne({
+        name: profile.name,
+        ip: request.ip,
+      });
+      if (!viewsData) {
+        await ViewModel.create({
+          name: profile.name,
+          ip: request.ip,
+        });
+      }
+
+      const viewAmount = await ViewModel.countDocuments({
+        name: profile.name,
+      });
+      profile.views = viewAmount;
+
+      return reply
+        .code(200)
+        .header("Access-Control-Allow-Origin", "*")
+        .send(profile);
     } catch (err) {
       console.log(err);
       return reply.code(500).header("Access-Control-Allow-Origin", "*").send({

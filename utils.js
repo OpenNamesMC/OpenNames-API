@@ -2,6 +2,11 @@ const axios = require("axios").default;
 const { ProfileModel } = require("./models/profile");
 axios.defaults.validateStatus = () => true;
 
+module.exports.isUUID = (str) =>
+  new RegExp(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  ).test(str);
+
 module.exports.createProfile = async (query) => {
   const profiles = await this.fetchMojangProfiles([query]);
   if (profiles.length) {

@@ -1,7 +1,6 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { config } = require("dotenv");
-const { registerNameArray } = require("./utils");
 
 config();
 
@@ -12,6 +11,8 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 let uuids = JSON.parse(fs.readFileSync("./uuids.json", "utf-8"));
+
+loop();
 
 async function loop(nameHistory) {
   let query;
@@ -32,8 +33,6 @@ async function loop(nameHistory) {
   }
 }
 
-loop();
-
 async function registerNameArray(query) {
   let profiles = await this.fetchMojangProfiles(query);
   if (profiles.length) {
@@ -47,4 +46,4 @@ async function registerNameArray(query) {
   } else {
     return false;
   }
-};
+}
