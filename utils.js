@@ -21,8 +21,8 @@ module.exports.createProfile = async (query) => {
   } else {
     return await ProfileModel.create({
       lastUpdated: Date.now(),
-      name: profile.name,
-      lowercaseName: profile.name.toLowerCase(),
+      name: query,
+      lowercaseName: query.toLowerCase(),
     });
   }
 };
