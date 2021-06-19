@@ -10,7 +10,11 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+    lowercaseName: {
+      type: String,
+      require: true,
+    },
+
     uuid: {
       type: String,
       unique: true,

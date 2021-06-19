@@ -1,6 +1,6 @@
 const { createProfile, formatProfile, formatTime } = require("../utils");
 const { ProfileModel } = require("../models/profile");
-const { ViewsModel } = require("../models/view");
+const { ViewModel } = require("../models/view");
 const config = require("../config");
 
 module.exports = async (request, reply) => {
@@ -13,10 +13,7 @@ module.exports = async (request, reply) => {
           $match: {
             $or: [
               {
-                name: {
-                  $regex: `^${query}$`,
-                  $options: "i",
-                },
+                lowercaseName: query.toLowerCase(),
               },
               { uuid: query },
             ],
@@ -86,7 +83,7 @@ module.exports = async (request, reply) => {
 
       if (user) {
         // Views Start
-        const viewsData = await ViewsModel.aggregate([
+        const viewsData = await ViewModel.aggregate([
           {
             $match: {
               name: {
@@ -98,13 +95,13 @@ module.exports = async (request, reply) => {
           },
         ]);
         if (!viewsData.length) {
-          await ViewsModel.create({
+          await ViewModel.create({
             name: user.name,
             ip: request.ip,
           });
         }
 
-        const viewAmount = await ViewsModel.countDocuments({ name: user.name });
+        const viewAmount = await ViewModel.countDocuments({ name: user.name });
         user.views = viewAmount;
         // Views End
 
@@ -120,12 +117,12 @@ module.exports = async (request, reply) => {
       }
     } catch (err) {
       console.log(err);
-      reply.code(500).header("Access-Control-Allow-Origin", "*").send({
+      return reply.code(500).header("Access-Control-Allow-Origin", "*").send({
         error: `Internal Server Error`,
       });
     }
   } else {
-    reply.code(400).header("Access-Control-Allow-Origin", "*").send({
+    return reply.code(400).header("Access-Control-Allow-Origin", "*").send({
       error: `Please provide the query parameter!`,
     });
   }

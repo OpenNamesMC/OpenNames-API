@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ViewsSchema = new mongoose.Schema(
+const ViewSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -8,12 +8,12 @@ const ViewsSchema = new mongoose.Schema(
     },
     ip: {
       type: String,
-      require: true,
+      required: true,
     },
   },
   { versionKey: false }
 );
-ViewsSchema.index({ name: 1 });
+ViewSchema.index({ name: 1 });
 
-module.exports.ViewsSchema = ViewsSchema;
-module.exports.ViewsModel = new mongoose.model("Views", ViewsSchema);
+module.exports.ViewSchema = ViewSchema;
+module.exports.ViewModel = new mongoose.model("View", ViewSchema);
