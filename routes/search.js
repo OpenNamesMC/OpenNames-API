@@ -40,7 +40,7 @@ module.exports = async (request, reply) => {
         } else {
           profile = formatProfile(profile);
         }
-      } else {
+      } else if (!profile?.uuid) {
         const pastProfiles = await ProfileModel.aggregate([
           {
             $match: {
