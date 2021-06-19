@@ -1,21 +1,6 @@
 const axios = require("axios").default;
-const { ProfileModel } = require("./mongo");
+const { ProfileModel } = require("./models/profile");
 axios.defaults.validateStatus = () => true;
-
-module.exports.registerNameArray = async (query) => {
-  let profiles = await this.fetchMojangProfiles(query);
-  if (profiles.length) {
-    ProfileModel.insertMany(
-      profiles.map((x) => {
-        x.lastUpdated = Date.now();
-        return x;
-      })
-    );
-    return profiles;
-  } else {
-    return false;
-  }
-};
 
 module.exports.createProfile = async (query) => {
   const profiles = await this.fetchMojangProfiles([query]);
@@ -28,7 +13,10 @@ module.exports.createProfile = async (query) => {
       name_history: profile.name_history,
     });
   } else {
-    return false;
+    return await ProfileModel.create({
+      lastUpdated: Date.now(),
+      name: profile.name,
+    });
   }
 };
 
@@ -60,12 +48,11 @@ module.exports.clearDuplicates = (data) => {
 };
 
 module.exports.formatProfile = (document) => {
-  return {
-    name: document.name,
-    uuid: document.uuid,
-    name_history: document.name_history,
-    views: document.views.length,
-  };
+  let obj = {};
+  if (document.name) obj.name = document.name;
+  if (document.uuid) obj.uuid = document.uuid;
+  if (document.name_history?.length) obj.name_history = document.name_history;
+  return obj;
 };
 
 module.exports.formatTime = (ms) => {

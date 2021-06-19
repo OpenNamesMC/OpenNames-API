@@ -1,8 +1,9 @@
-const { createProfile, formatProfile, formatTime } = require("./index");
-const { ProfileModel } = require("./mongo");
+const { createProfile, formatProfile, formatTime } = require("../utils");
+const { ProfileModel } = require("../models/profile");
+const { ViewsModel } = require("../models/view");
 const config = require("../config");
 
-async function Search(request, reply) {
+module.exports = async (request, reply) => {
   const query = request.query.query;
   if (query) {
     try {
@@ -84,15 +85,29 @@ async function Search(request, reply) {
       }
 
       if (user) {
-        if (!document.views.includes(request.ip)) {
-          document.views.push(request.ip);
-          await ProfileModel.updateOne(
-            {
-              _id: document._id,
+        // Views Start
+        const viewsData = await ViewsModel.aggregate([
+          {
+            $match: {
+              name: {
+                $regex: `^${query}$`,
+                $options: "i",
+              },
+              ip: request.ip,
             },
-            document
-          );
+          },
+        ]);
+        if (!viewsData.length) {
+          await ViewsModel.create({
+            name: user.name,
+            ip: request.ip,
+          });
         }
+
+        const viewAmount = await ViewsModel.countDocuments({ name: user.name });
+        user.views = viewAmount;
+        // Views End
+
         return reply
           .code(200)
           .header("Access-Control-Allow-Origin", "*")
@@ -114,6 +129,4 @@ async function Search(request, reply) {
       error: `Please provide the query parameter!`,
     });
   }
-}
-
-module.exports.Routes = { Search };
+};

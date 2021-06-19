@@ -1,7 +1,7 @@
 const fastify = require("fastify")({ trustProxy: true });
 const mongoose = require("mongoose");
 const { config } = require("dotenv");
-const { Routes } = require("./utils/routes");
+const SearchRoute = require("./routes/search");
 
 config();
 
@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 (async () => {
-  fastify.get("/search", Routes.Search);
+  fastify.get("/search", SearchRoute);
   fastify.listen(
     parseInt(process.env.PORT),
     process.env.HOST,

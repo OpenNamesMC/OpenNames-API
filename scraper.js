@@ -33,3 +33,18 @@ async function loop(nameHistory) {
 }
 
 loop();
+
+async function registerNameArray(query) {
+  let profiles = await this.fetchMojangProfiles(query);
+  if (profiles.length) {
+    ProfileModel.insertMany(
+      profiles.map((x) => {
+        x.lastUpdated = Date.now();
+        return x;
+      })
+    );
+    return profiles;
+  } else {
+    return false;
+  }
+};
