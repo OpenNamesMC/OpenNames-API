@@ -5,6 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.21.1",
+    "chalk": "^4.1.1",
     "dotenv": "^10.0.0",
     "fastify": "^3.18.0",
     "mongoose": "^5.12.14"

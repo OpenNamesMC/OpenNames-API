@@ -5,19 +5,23 @@ const ProfileSchema = new mongoose.Schema(
     lastUpdated: {
       type: Number,
       required: true,
+      default: Date.now,
     },
     name: {
       type: String,
       required: true,
+      sparse: true,
+      unique: true,
     },
     lowercaseName: {
       type: String,
-      require: true,
+      required: true,
     },
 
     uuid: {
       type: String,
       sparse: true,
+      unique: true,
     },
     name_history: {
       type: [{ _id: false, name: String, changedToAt: Number }],

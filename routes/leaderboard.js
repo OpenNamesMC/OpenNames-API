@@ -14,7 +14,7 @@ module.exports = async (request, reply) => {
     ]);
     if (topNameViews.length) {
       const profiles = await ProfileModel.find({
-        lowercaseName: { $in: topNameViews.map((x) => x._id) },
+        lowercaseName: { $in: topNameViews.map((x) => x._id.toLowerCase()) },
       });
       if (profiles.length) {
         return reply.code(200).send(profiles);
