@@ -1,10 +1,11 @@
 const { ProfileModel } = require("../models/profile");
 const { ViewModel } = require("../models/view");
-const { formatProfile } = require("../utils");
+const { fetchUser } = require("../utils");
 
 module.exports = async (request, reply) => {
   try {
     const topNameViews = await ViewModel.aggregate([
+      { $match: { type: "MONTHLY" } },
       { $group: { _id: "$name", views: { $sum: 1 } } },
       {
         $sort: {
@@ -18,14 +19,13 @@ module.exports = async (request, reply) => {
         lowercaseName: { $in: topNameViews.map((x) => x._id.toLowerCase()) },
       });
       if (profiles.length) {
-        const formattedProfiles = profiles.map((profile) => {
-          profile.views =
-            topNameViews.find(
-              (x) => x._id.toLowerCase() === profile.lowercaseName
-            )?.views || 0;
-          return formatProfile(profile);
-        });
-        return reply.code(200).send(formattedProfiles);
+        const formattedProfiles = await Promise.all(
+          profiles.map((x) => fetchUser(x.name))
+        );
+        const sortedProfiles = formattedProfiles.sort(
+          (a, b) => b.monthlyViews - a.monthlyViews
+        );
+        return reply.code(200).send(sortedProfiles);
       } else {
         return reply.code(404).send({
           error: "No top users for views could be found!",

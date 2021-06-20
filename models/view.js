@@ -10,6 +10,11 @@ const ViewSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    type: {
+      type: String,
+      required: true,
+      enum: ["LIFETIME", "MONTHLY"],
+    },
   },
   { versionKey: false }
 );

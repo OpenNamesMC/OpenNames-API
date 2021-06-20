@@ -1,6 +1,104 @@
 const axios = require("axios").default;
 const { ProfileModel } = require("./models/profile");
 axios.defaults.validateStatus = () => true;
+const { ViewModel } = require("./models/view");
+const config = require("./config");
+
+module.exports.fetchUser = async (query) => {
+  try {
+    let profile;
+    if (this.isUUID(query)) {
+      profile = await ProfileModel.findOne({ uuid: query });
+    } else {
+      const profiles = await ProfileModel.aggregate([
+        {
+          $match: {
+            $or: [
+              {
+                lowercaseName: query.toLowerCase(),
+              },
+              { uuid: query },
+            ],
+          },
+        },
+      ]);
+      if (profiles.length) profile = profiles[0];
+    }
+
+    if (profile) {
+      if (profile.lastUpdated - Date.now() > config.profileUpdateInterval) {
+        await ProfileModel.deleteOne({
+          _id: profile._id,
+        });
+        profile = this.formatProfile(await this.createProfile(query));
+      } else {
+        profile = this.formatProfile(profile);
+      }
+    }
+
+    if (!profile && !this.isUUID(query)) {
+      profile = this.formatProfile(await this.createProfile(query));
+    }
+
+    if (!profile?.uuid) {
+      const pastProfiles = await ProfileModel.aggregate([
+        {
+          $match: {
+            "name_history.name": {
+              $regex: `^${query}$`,
+              $options: "i",
+            },
+            "name_history.changedToAt": {
+              $exists: true,
+            },
+          },
+        },
+        {
+          $sort: {
+            "name_history.changedToAt": -1,
+          },
+        },
+      ]);
+      if (pastProfiles.length) {
+        const history = pastProfiles[0].name_history;
+        const nameChangeTime =
+          history[
+            history.indexOf(
+              history.find((x) => x.name.toLowerCase() === query.toLowerCase())
+            ) + 1
+          ].changedToAt;
+
+        const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
+        const timeUntilDrop = dropTime - Date.now();
+
+        if (!(Math.sign(timeUntilDrop) === -1)) {
+          profile = {
+            name: query,
+            unixDropTime: dropTime,
+            stringDropTime: this.formatTime(timeUntilDrop),
+            owner_history: pastProfiles.map((x) => this.formatProfile(x)),
+          };
+        }
+      }
+    }
+
+    const monthlyViewAmount = await ViewModel.countDocuments({
+      name: profile.name,
+      type: "MONTHLY",
+    });
+    const lifetimeViewAmount = await ViewModel.countDocuments({
+      name: profile.name,
+      type: "LIFETIME",
+    });
+    profile.monthlyViews = monthlyViewAmount;
+    profile.lifetimeViews = lifetimeViewAmount;
+
+    return profile;
+  } catch (err) {
+    console.log(err);
+    return false;
+  }
+};
 
 module.exports.isUUID = (str) =>
   new RegExp(
