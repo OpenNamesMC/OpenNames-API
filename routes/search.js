@@ -6,29 +6,16 @@ module.exports = async (request, reply) => {
   if (query) {
     try {
       const profile = await fetchUser(query);
-      const monthlyViewData = await ViewModel.exists({
-        name: profile.name,
-        ip: request.ip,
-        type: "MONTHLY",
-      });
-      if (!monthlyViewData) {
-        await ViewModel.create({
-          name: profile.name,
-          ip: request.ip,
-          type: "MONTHLY",
-        });
-      }
 
-      const lifetimeViewData = await ViewModel.exists({
+      // Views
+      const viewData = await ViewModel.exists({
         name: profile.name,
         ip: request.ip,
-        type: "LIFETIME",
       });
-      if (!lifetimeViewData) {
+      if (!viewData) {
         await ViewModel.create({
           name: profile.name,
           ip: request.ip,
-          type: "LIFETIME",
         });
       }
 

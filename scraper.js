@@ -14,33 +14,23 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 let uuids = JSON.parse(fs.readFileSync("./uuids.json", "utf-8"));
-// let historyNames = [];
 
-const historyNames = new Set();
-
-const commafy = (num) => num.toString().replace(/\B(?=(?:\d{3})+)$/g, ",");
-
-console.log(chalk.green(`Loaded a total of ${commafy(uuids.length)} names!`));
+console.log(
+  chalk.cyan(`[${commafy(uuids.length)}] `) + chalk.green(`Loaded Names`)
+);
 
 processAccounts(uuids);
-async function processAccounts(query, restart = false) {
-  if (restart) historyNames = new Set();
-
+async function processAccounts(query) {
   let pastTime = new Date().getTime();
   const accountChunks = chunk(query, 25);
   for (let accountChunk of accountChunks) {
     await registerNameArray(accountChunk);
-
     uuids = uuids.filter((x) => !accountChunk.includes(x));
-    if (uuids.length === 0) processAccounts(Array.from(historyNames), true);
-
     fs.writeFileSync("./uuids.json", JSON.stringify(uuids));
     console.log(
-      chalk.green(
-        `${commafy(uuids.length)} Accounts left to check! | ${
-          new Date().getTime() - pastTime
-        }ms`
-      )
+      chalk.cyan(`[${commafy(uuids.length)}] `) +
+        chalk.green(`Accounts Left To Check `) +
+        chalk.yellow(`(${new Date().getTime() - pastTime}ms)`)
     );
     pastTime = new Date().getTime();
   }
@@ -52,12 +42,6 @@ async function registerNameArray(query) {
     try {
       await ProfileModel.insertMany(profiles);
     } catch (e) {}
-
-    profiles.forEach((profile) => {
-      profile.name_history?.forEach((history) => {
-        if (history.name !== profile.name) historyNames.add(history.name);
-      });
-    });
   } else {
     console.log(chalk.red(`WARNING THE MOJANG API STOPPED WORKING`));
   }
@@ -97,4 +81,15 @@ function chunk(array, size) {
     result[resIndex++] = baseSlice(array, index, (index += size));
   }
   return result;
+}
+
+function commafy(num) {
+  const str = num.toString().split(".");
+  if (str[0].length >= 4) {
+    str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g, "$1,");
+  }
+  if (str[1] && str[1].length >= 4) {
+    str[1] = str[1].replace(/(\d{3})/g, "$1 ");
+  }
+  return str.join(".");
 }

@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const ViewSchema = new mongoose.Schema(
   {
+    createdAt: {
+      type: Date,
+      required: true,
+      default: new Date,
+    },
     name: {
       type: String,
       required: true,
@@ -9,11 +14,6 @@ const ViewSchema = new mongoose.Schema(
     ip: {
       type: String,
       required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-      enum: ["LIFETIME", "MONTHLY"],
     },
   },
   { versionKey: false }

@@ -82,11 +82,10 @@ module.exports.fetchUser = async (query) => {
 
     profile.monthlyViews = await ViewModel.countDocuments({
       name: profile.name,
-      type: "MONTHLY",
+      createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
     });
     profile.lifetimeViews = await ViewModel.countDocuments({
       name: profile.name,
-      type: "LIFETIME",
     });
 
     return profile;

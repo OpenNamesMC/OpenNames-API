@@ -5,7 +5,11 @@ const { fetchUser } = require("../utils");
 module.exports = async (request, reply) => {
   try {
     const topNameViews = await ViewModel.aggregate([
-      { $match: { type: "MONTHLY" } },
+      {
+        $match: {
+          createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+        },
+      },
       { $group: { _id: "$name", views: { $sum: 1 } } },
       {
         $sort: {
