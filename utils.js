@@ -1,8 +1,9 @@
 const axios = require("axios").default;
 const { ProfileModel } = require("./models/profile");
-axios.defaults.validateStatus = () => true;
 const { ViewModel } = require("./models/view");
 const config = require("./config");
+
+axios.defaults.validateStatus = () => true;
 
 module.exports.fetchUser = async (query) => {
   try {
@@ -30,13 +31,10 @@ module.exports.fetchUser = async (query) => {
         await ProfileModel.deleteOne({
           _id: profile._id,
         });
-        profile = this.formatProfile(await this.createProfile(query));
-      } else {
-        profile = this.formatProfile(profile);
+        profile = await this.createProfile(query);
       }
-    }
-
-    if (!profile && !this.isUUID(query)) {
+      profile = this.formatProfile(profile);
+    } else if (!profile && !this.isUUID(query)) {
       profile = this.formatProfile(await this.createProfile(query));
     }
 
@@ -82,16 +80,14 @@ module.exports.fetchUser = async (query) => {
       }
     }
 
-    const monthlyViewAmount = await ViewModel.countDocuments({
+    profile.monthlyViews = await ViewModel.countDocuments({
       name: profile.name,
       type: "MONTHLY",
     });
-    const lifetimeViewAmount = await ViewModel.countDocuments({
+    profile.lifetimeViews = await ViewModel.countDocuments({
       name: profile.name,
       type: "LIFETIME",
     });
-    profile.monthlyViews = monthlyViewAmount;
-    profile.lifetimeViews = lifetimeViewAmount;
 
     return profile;
   } catch (err) {
