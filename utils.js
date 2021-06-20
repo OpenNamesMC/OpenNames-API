@@ -59,6 +59,10 @@ module.exports.formatProfile = (document) => {
   if (document.name) obj.name = document.name;
   if (document.uuid) obj.uuid = document.uuid;
   if (document.name_history?.length) obj.name_history = document.name_history;
+  if (document.views) {
+    if (typeof document.views == "number") obj.views = document.views;
+    if (document.views instanceof Array) obj.views = docuemt.views.length;
+  }
   return obj;
 };
 

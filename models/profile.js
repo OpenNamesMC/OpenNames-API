@@ -17,7 +17,6 @@ const ProfileSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     uuid: {
       type: String,
       sparse: true,
