@@ -156,6 +156,7 @@ module.exports.formatProfile = (document) => {
     if (typeof document.views == "number") obj.views = document.views;
     if (document.views instanceof Array) obj.views = docuemt.views.length;
   }
+  if (document.lastUpdated) obj.lastUpdated = document.lastUpdated;
   return obj;
 };
 
