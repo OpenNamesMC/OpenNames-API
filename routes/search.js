@@ -7,16 +7,17 @@ module.exports = async (request, reply) => {
     try {
       const profile = await fetchUser(query);
 
-      // Views
-      const viewData = await ViewModel.exists({
-        name: profile.name,
-        ip: request.ip,
-      });
-      if (!viewData) {
-        await ViewModel.create({
+      if (request.ip) {
+        const viewData = await ViewModel.exists({
           name: profile.name,
           ip: request.ip,
         });
+        if (!viewData) {
+          await ViewModel.create({
+            name: profile.name,
+            ip: request.ip,
+          });
+        }
       }
 
       return reply
