@@ -38,48 +38,46 @@ module.exports.fetchUser = async (query) => {
       profile = this.formatProfile(await this.createProfile(query));
     }
 
+    const pastProfiles = await ProfileModel.aggregate([
+      {
+        $match: {
+          "name_history.name": {
+            $regex: `^${query}$`,
+            $options: "i",
+          },
+          "name_history.changedToAt": {
+            $exists: true,
+          },
+        },
+      },
+      {
+        $sort: {
+          "name_history.changedToAt": -1,
+        },
+      },
+    ]);
+
     if (!profile?.uuid) {
-      const pastProfiles = await ProfileModel.aggregate([
-        {
-          $match: {
-            "name_history.name": {
-              $regex: `^${query}$`,
-              $options: "i",
-            },
-            "name_history.changedToAt": {
-              $exists: true,
-            },
-          },
-        },
-        {
-          $sort: {
-            "name_history.changedToAt": -1,
-          },
-        },
-      ]);
-      if (pastProfiles.length) {
-        const history = pastProfiles[0].name_history;
-        const nameChangeTime =
-          history[
-            history.indexOf(
-              history.find((x) => x.name.toLowerCase() === query.toLowerCase())
-            ) + 1
-          ].changedToAt;
+      const history = pastProfiles[0].name_history;
+      const nameChangeTime =
+        history[
+          history.indexOf(
+            history.find((x) => x.name.toLowerCase() === query.toLowerCase())
+          ) + 1
+        ].changedToAt;
+      const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
+      const timeUntilDrop = dropTime - Date.now();
 
-        const dropTime = nameChangeTime + 37 * 24 * 60 * 60 * 1000;
-        const timeUntilDrop = dropTime - Date.now();
-
-        if (!(Math.sign(timeUntilDrop) === -1)) {
-          profile = {
-            name: query,
-            unixDropTime: dropTime,
-            stringDropTime: this.formatTime(timeUntilDrop),
-            owner_history: pastProfiles.map((x) => this.formatProfile(x)),
-          };
-        }
+      if (!(Math.sign(timeUntilDrop) === -1)) {
+        profile = {
+          name: query,
+          unixDropTime: dropTime,
+          stringDropTime: this.formatTime(timeUntilDrop),
+        };
       }
     }
 
+    profile.owner_history = pastProfiles.map((x) => this.formatProfile(x));
     profile.monthlyViews = await ViewModel.countDocuments({
       name: profile.name,
       createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
