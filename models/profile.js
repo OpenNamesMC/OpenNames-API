@@ -13,10 +13,6 @@ const ProfileSchema = new mongoose.Schema(
       sparse: true,
       unique: true,
     },
-    lowercaseName: {
-      type: String,
-      required: true,
-    },
     uuid: {
       type: String,
       sparse: true,

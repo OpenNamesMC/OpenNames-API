@@ -20,7 +20,7 @@ module.exports = async (request, reply) => {
     ]);
     if (topNameViews.length) {
       const profiles = await ProfileModel.find({
-        lowercaseName: { $in: topNameViews.map((x) => x._id.toLowerCase()) },
+        name: { $in: topNameViews.map((x) => x._id) },
       });
       if (profiles.length) {
         const formattedProfiles = await Promise.all(

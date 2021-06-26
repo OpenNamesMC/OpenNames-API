@@ -16,7 +16,10 @@ module.exports.fetchUser = async (query) => {
           $match: {
             $or: [
               {
-                lowercaseName: query.toLowerCase(),
+                name: {
+                  $regex: `^${query}$`,
+                  $options: "i",
+                },
               },
               { uuid: query },
             ],
@@ -105,7 +108,6 @@ module.exports.createProfile = async (query) => {
     return await ProfileModel.create({
       lastUpdated: Date.now(),
       name: profile.name,
-      lowercaseName: profile.name.toLowerCase(),
       uuid: profile.uuid,
       name_history: profile.name_history,
     });
@@ -113,7 +115,6 @@ module.exports.createProfile = async (query) => {
     return await ProfileModel.create({
       lastUpdated: Date.now(),
       name: query,
-      lowercaseName: query.toLowerCase(),
     });
   }
 };
