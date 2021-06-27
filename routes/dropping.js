@@ -51,18 +51,19 @@ module.exports = async (request, reply) => {
     ]);
 
     if (droppingProfiles.length) {
-      const final = [];
-      const formattedDroppingNames = droppingProfiles.map((profile) => {
+      const uniqueDroppingSoon = [];
+      for (const profile of droppingProfiles) {
+        if (!uniqueDroppingSoon.some((x) => x.name === profile.name))
+          uniqueDroppingSoon.push(profile);
+      }
+      const formattedDroppingNames = uniqueDroppingSoon.map((profile) => {
         return {
           name: profile.name,
           unixDropTime: profile.dropTime,
           stringDropTime: formatTime(profile.timeUntilDrop),
         };
       });
-      for (const profile of formattedDroppingNames) {
-        if (!final.some((x) => x.name === profile.name)) final.push(profile);
-      }
-      return final;
+      return formattedDroppingNames;
     }
   } catch (err) {
     console.log(err);
