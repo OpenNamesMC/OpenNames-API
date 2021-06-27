@@ -12,6 +12,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 fastify.get("/search", require("./routes/search"));
 fastify.get("/leaderboard", require("./routes/leaderboard"));
+fastify.get("/dropping", require("./routes/dropping"));
 fastify.listen(
   parseInt(process.env.PORT),
   process.env.HOST,

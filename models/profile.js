@@ -1,5 +1,25 @@
 const mongoose = require("mongoose");
 
+const HypixelType = {
+  lastUpdated: {
+    type: Number,
+    required: true,
+    default: Date.now,
+  },
+  playTime: {
+    type: Number,
+    required: false,
+  },
+  karma: {
+    type: Number,
+    required: false,
+  },
+  rank: {
+    type: String,
+    required: false,
+  },
+};
+
 const ProfileSchema = new mongoose.Schema(
   {
     lastUpdated: {
@@ -21,6 +41,10 @@ const ProfileSchema = new mongoose.Schema(
     name_history: {
       type: [{ _id: false, name: String, changedToAt: Number }],
       default: [],
+    },
+    hypixel: {
+      type: HypixelType,
+      default: null,
     },
   },
   { versionKey: false }
