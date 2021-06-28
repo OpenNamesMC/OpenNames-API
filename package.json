@@ -8,6 +8,7 @@
     "chalk": "^4.1.1",
     "dotenv": "^10.0.0",
     "fastify": "^3.18.0",
+    "fastify-cors": "^6.0.1",
     "mongoose": "^5.12.14"
   }
 }

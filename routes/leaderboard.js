@@ -30,22 +30,20 @@ module.exports = async (request, reply) => {
           (a, b) => b.monthlyViews - a.monthlyViews
         );
         return reply
-          .code(200)
-          .header("Access-Control-Allow-Origin", "*")
-          .send(sortedProfiles);
+          .code(200).send(sortedProfiles);
       } else {
-        return reply.code(404).header("Access-Control-Allow-Origin", "*").send({
+        return reply.code(404).send({
           error: "No top users for views could be found!",
         });
       }
     } else {
-      return reply.code(404).header("Access-Control-Allow-Origin", "*").send({
+      return reply.code(404).send({
         error: "No top users for views could be found!",
       });
     }
   } catch (err) {
     console.log(err);
-    return reply.code(500).header("Access-Control-Allow-Origin", "*").send({
+    return reply.code(500).send({
       error: "Internal Server Error",
     });
   }

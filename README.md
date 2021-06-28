@@ -11,7 +11,7 @@ To host the API yourself, you need to have [MongoDB](https://www.mongodb.com/nod
 ## Run the API locally
 Install the required dependencies:
 ```
-npm install
+yarn install
 ```
 
 Start the API

@@ -66,7 +66,7 @@ module.exports = async (request, reply) => {
     }
   } catch (err) {
     console.log(err);
-    return reply.code(500).header("Access-Control-Allow-Origin", "*").send({
+    return reply.code(500).send({
       error: `Internal Server Error`,
     });
   }
