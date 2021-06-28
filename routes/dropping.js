@@ -6,7 +6,7 @@ module.exports = async (request, reply) => {
     const droppingProfiles = await ProfileModel.aggregate([
       {
         $match: {
-          "name_history.changedToAt": {
+          "name_history.1": {
             $exists: true,
           },
         },
@@ -16,7 +16,7 @@ module.exports = async (request, reply) => {
           latestNameChangeTime: {
             $arrayElemAt: [
               "$name_history",
-              { $subtract: [{ $size: "$name_history" }, 1] },
+              { $subtract: [{ $size: "$name_history" }, 2] },
             ],
           },
         },
@@ -50,6 +50,8 @@ module.exports = async (request, reply) => {
       },
     ]);
 
+    console.log(droppingProfiles);
+
     if (droppingProfiles.length) {
       const uniqueDroppingSoon = [];
       for (const profile of droppingProfiles) {
@@ -58,7 +60,7 @@ module.exports = async (request, reply) => {
       }
       const formattedDroppingNames = uniqueDroppingSoon.map((profile) => {
         return {
-          name: profile.name,
+          name: profile.droppingName,
           unixDropTime: profile.dropTime,
           stringDropTime: formatTime(profile.timeUntilDrop),
         };

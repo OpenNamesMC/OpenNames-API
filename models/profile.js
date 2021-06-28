@@ -51,6 +51,7 @@ const ProfileSchema = new mongoose.Schema(
 );
 ProfileSchema.index({ name: 1 });
 ProfileSchema.index({ uuid: 1 });
+ProfileSchema.index({ "name_history.changedToAt": 1 });
 
 module.exports.ProfileSchema = ProfileSchema;
 module.exports.ProfileModel = new mongoose.model("Profile", ProfileSchema);
