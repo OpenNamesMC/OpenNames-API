@@ -4,6 +4,10 @@ const { config } = require("dotenv");
 
 config();
 
+fastify.register(require('fastify-cors'), { 
+  origin: "*" // Access-Control-Allow-Origin: *
+})
+
 mongoose.connect(process.env.MONGO_URI, {
   useCreateIndex: true,
   useNewUrlParser: true,

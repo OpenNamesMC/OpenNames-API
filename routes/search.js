@@ -19,19 +19,15 @@ module.exports = async (request, reply) => {
           });
         }
       }
-
-      return reply
-        .code(200)
-        .header("Access-Control-Allow-Origin", "*")
-        .send(profile);
+      return profile
     } catch (err) {
       console.log(err);
-      return reply.code(500).header("Access-Control-Allow-Origin", "*").send({
+      return reply.code(500).send({
         error: `Internal Server Error`,
       });
     }
   } else {
-    return reply.code(400).header("Access-Control-Allow-Origin", "*").send({
+    return reply.code(400).send({
       error: `Please provide the query parameter!`,
     });
   }

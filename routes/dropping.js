@@ -66,10 +66,14 @@ module.exports = async (request, reply) => {
         };
       });
       return formattedDroppingNames;
+    } else {
+      return reply.code(404).send({
+        error: "No names dropping"
+      })
     }
   } catch (err) {
     console.log(err);
-    return reply.code(500).header("Access-Control-Allow-Origin", "*").send({
+    return reply.code(500).send({
       error: `Internal Server Error`,
     });
   }
