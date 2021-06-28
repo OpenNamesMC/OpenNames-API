@@ -19,9 +19,7 @@ module.exports = async (request, reply) => {
           });
         }
       }
-
-      return reply
-        .code(200).send(profile);
+      return profile
     } catch (err) {
       console.log(err);
       return reply.code(500).send({

@@ -29,8 +29,7 @@ module.exports = async (request, reply) => {
         const sortedProfiles = formattedProfiles.sort(
           (a, b) => b.monthlyViews - a.monthlyViews
         );
-        return reply
-          .code(200).send(sortedProfiles);
+        return sortedProfiles
       } else {
         return reply.code(404).send({
           error: "No top users for views could be found!",

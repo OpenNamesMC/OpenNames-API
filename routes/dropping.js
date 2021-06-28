@@ -63,6 +63,10 @@ module.exports = async (request, reply) => {
         if (!final.some((x) => x.name === profile.name)) final.push(profile);
       }
       return final;
+    } else {
+      return reply.code(404).send({
+        error: "No names dropping"
+      })
     }
   } catch (err) {
     console.log(err);
